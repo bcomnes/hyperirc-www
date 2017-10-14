@@ -4,13 +4,25 @@
   "description": "Read IRC in the browser by joining the hyperirc network over webrtc",
   "main": "index.js",
   "dependencies": {
-    "hypercore": "^4.2.5",
+    "hypercore": "^6.10.1",
     "level-browserify": "^1.1.0",
     "pump": "^1.0.1",
+    "random-access-idb": "^1.0.4",
+    "random-access-memory": "^2.4.0",
     "signalhub": "^4.5.1",
     "webrtc-swarm": "^2.4.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "budo": "^10.0.4",
+    "cpr": "^2.2.0",
+    "exorcist": "^1.0.0",
+    "http-server": "^0.10.0",
+    "mkdirp": "^0.5.1",
+    "npm-run-all": "^4.1.1",
+    "rimraf": "^2.6.2",
+    "standard": "^10.0.3"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mafintosh/hyperirc-www.git"
@@ -19,6 +31,15 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mafintosh/hyperirc-www/issues"
+  },
+  "scripts": {
+    "start": "budo index.js:bundle.js --dir static --live --open",
+    "test": "standard",
+    "clean": "rimraf dist && mkdirp dist",
+    "build": "npm run clean && run-p build:*",
+    "build:js": "browserify index.js --debug | exorcist dist/bundle.js.map > dist/bundle.js",
+    "build:static": "cpr static dist/",
+    "test-build": "npm run build && http-server dist"
   },
   "homepage": "https://github.com/mafintosh/hyperirc-www"
 }
