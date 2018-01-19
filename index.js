@@ -3,8 +3,13 @@ var swarm = require('webrtc-swarm')
 var signalhub = require('signalhub')
 var pump = require('pump')
 var ram = require('random-access-idb')('hyperirc')
+var html = require('bel')
+var dateTime = require('date-time')
 
 var key = window.location.hash.slice(1)
+
+// default to #hypermodules
+if (key === '') key = 'f34fd67dac587f49f2e6747e2e1a1dc4633750110390319840bae2ea5d05bdee'
 
 var all = false
 var cnt = 0
@@ -21,16 +26,42 @@ var core = hypercore(function (filename) {
 var $main = document.getElementById('main')
 
 function log (msg) {
-  var pre = document.createElement('pre')
-  pre.innerText = msg
-  $main.appendChild(pre)
+  var payload = JSON.parse(msg)
+  if (payload.channel) return
+  if (!payload.message) {
+    var pre = document.createElement('pre')
+    pre.innerText = msg
+    return $main.appendChild(pre)
+  }
+
+  var message = html`
+    <div class="message">
+      <span class="timestamp">
+        <small>${dateTime({ date: new Date(payload.timestamp) })}</small>
+      </span>
+      <span class="message-container">
+        <span class="from">${payload.from}:</span>
+        <span class="content">${payload.message}</span>
+      </span>
+    </div>
+  `
+
+  $main.appendChild(message)
 }
 
 core.on('ready', function () {
   core.get(0, function (err, channel) {
     if (err) throw err
 
-    document.title = document.getElementById('channel').innerText = channel.toString()
+    var txt
+
+    try {
+      txt = JSON.parse(channel.toString()).channel
+    } catch (e) {
+      txt = channel.toString()
+    }
+
+    document.title = document.getElementById('channel').innerText = txt
 
     var end = core.length
     var stream = tail()
@@ -55,7 +86,10 @@ core.on('ready', function () {
     }
   })
 
-  var sw = swarm(signalhub('hyperirc-' + core.discoveryKey.toString('hex'), 'https://signalhub.mafintosh.com'))
+  var sw = swarm(signalhub('hyperirc-' + core.discoveryKey.toString('hex'), [
+    'https://signalhub.mafintosh.com',
+    'https://signalhub.decent.digital'
+  ]))
 
   console.log('Waiting for peers...')
 

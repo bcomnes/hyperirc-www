@@ -4,6 +4,8 @@
   "description": "Read IRC in the browser by joining the hyperirc network over webrtc",
   "main": "index.js",
   "dependencies": {
+    "bel": "^5.1.5",
+    "date-time": "^2.1.0",
     "hypercore": "^6.10.1",
     "level-browserify": "^1.1.0",
     "pump": "^1.0.1",
