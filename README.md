@@ -1,15 +1,8 @@
-# hyperirc-www
+# [irc.hypermodul.es](https://irc.hypermodul.es)
 
-A static website that joins the hyperirc swarm using webrtc.
+Static site for reading IRC logs from #hypermodules on freenode.
 
-Allows you to read IRC in the browser by joining the hyperirc network.
-
-To read an irc channel goto one of these channels
-
-* #dat https://mafintosh.github.io/hyperirc-www#4e397d94d0f5df0e2268b2b7b23948b6dddfca66f91c2d452f404202e6d0f626
-* #cphftw https://mafintosh.github.io/hyperirc-www#a8d20e7d305a95904798142de0b75dff251b84db73873fd4aba73d5bdc7b50cf
-
-You can change the key (the part after the #) to any other hyperirc key to read that.
+This is a fork of [`hyperirc-www`](https://github.com/mafintosh/hyperirc-www), a static website that joins the [`hyperirc`](https://github.com/mafintosh/hyperirc) swarm using [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).
 
 ## License
 
