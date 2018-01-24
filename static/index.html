@@ -4,21 +4,27 @@
   <title>Loading...</title>
   <link rel="stylesheet" href="https://unpkg.com/style.css">
   <style>
-    .container {
-      display: flex;
-      flex-direction: column;
-    }
     #header {
       background: #f2f7fc;
       border-bottom: 1px solid #d9e7ff;
       font-size: 12px;
-      padding: 1em;
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
     }
     #main {
-      flex-grow: 1;
       overflow: scroll;
       font-size: 14px;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
       padding: 1em;
+      background: #fff;
     }
     #channel { font-weight: 600 }
     pre {
@@ -27,37 +33,34 @@
     }
     a { color: #1d40ff }
     .message {
-      display: flex;
-      flex-direction: row;
+      padding: .5rem 1rem;
+      border: 1px solid transparent;
     }
+    .message:hover {
+      background: #f2f7fc;
+      border-color: #d9e7ff;
+    }
+    .from { font-weight: 600 }
     .timestamp {
-      color: #ccc;
+      color: #aaa;
       display: inline-block;
       font-variant-numeric: tabular-nums;
-      width: 200px;
-      text-align: right;
-      margin-right: 1em;
-      flex: 0 1 200px;
-      line-height: 21px;
+      margin-left: 1em;
+      font-size: 80%;
+      font-weight: 300;
     }
-    .message-container {
-      flex: 1;
-    }
-    .from {
-      font-weight: 600;
-      margin-right: .5em;
-    }
+    .content { word-break: break-word }
+    .right { float: right }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="header">
-      Reading <span id="channel">(loading...)</span>
-      over a p2p network using <a href="https://github.com/mafintosh/hyperirc">hyperirc</a>.
-      Connected to <span id="count">0</span> peer(s).
-    </div>
-    <div id="main"></div>
+  <div id="header">
+    Reading <a href="https://hypermodul.es" id="channel">#hypermodules</a>
+    over a p2p network using <a href="https://github.com/mafintosh/hyperirc">hyperirc</a>.
+    Connected to <span id="count">0</span> peer(s).
+    <span class="right">Log length: <span id="total-length">(loading...)</span>. Showing latest <span id="current-length">(loading...)</span> messages.</span>
   </div>
+  <div id="main"></div>
   <script src="bundle.js"></script>
 </body>
 </html>

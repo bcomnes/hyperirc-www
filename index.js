@@ -4,29 +4,39 @@ var signalhub = require('signalhub')
 var pump = require('pump')
 var ram = require('random-access-idb')('hyperirc')
 var html = require('bel')
+var raw = require('bel/raw')
 var dateTime = require('date-time')
-
-var key = window.location.hash.slice(1)
+var linkifyUrls = require('linkify-urls')
 
 // default to #hypermodules
-if (key === '') key = 'f34fd67dac587f49f2e6747e2e1a1dc4633750110390319840bae2ea5d05bdee'
+var KEY = 'f34fd67dac587f49f2e6747e2e1a1dc4633750110390319840bae2ea5d05bdee'
+var MESSAGE_CAP = 100
 
 var all = false
-var cnt = 0
+var peerCount = 0
+var msgCount = 0
 var core = hypercore(function (filename) {
   // filename will be one of: data, bitfield, tree, signatures, key, secret_key
   // the data file will contain all your data concattenated.
 
   // just store all files in ram by returning a random-access-memory instance
   return ram(filename)
-}, key, {
+}, KEY, {
   sparse: true
 })
 
 var $main = document.getElementById('main')
 
-function log (msg) {
-  var payload = JSON.parse(msg)
+function log (msg, idx) {
+  msgCount++
+  document.getElementById('current-length').innerText = msgCount
+
+  try {
+    var payload = JSON.parse(msg)
+  } catch (e) {
+    return $main.appendChild(html`<div class="message"><pre>${msg}</pre></div>`)
+  }
+
   if (payload.channel) return
   if (!payload.message) {
     var pre = document.createElement('pre')
@@ -36,20 +46,20 @@ function log (msg) {
 
   var message = html`
     <div class="message">
-      <span class="timestamp">
-        <small>${dateTime({ date: new Date(payload.timestamp) })}</small>
-      </span>
-      <span class="message-container">
-        <span class="from">${payload.from}:</span>
-        <span class="content">${payload.message}</span>
-      </span>
+      <div class="from">
+        <span class="from" style="color: ${stringToColor(payload.from)}">${payload.from}</span>
+        <span class="timestamp right">${dateTime({ date: new Date(payload.timestamp) })}</span>
+      </div>
+      <div class="content">${raw(linkifyUrls(payload.message))}</div>
     </div>
   `
 
   $main.appendChild(message)
+  $main.scrollTop = $main.scrollHeight
 }
 
 core.on('ready', function () {
+  document.getElementById('total-length').innerText = core.length
   core.get(0, function (err, channel) {
     if (err) throw err
 
@@ -63,27 +73,7 @@ core.on('ready', function () {
 
     document.title = document.getElementById('channel').innerText = txt
 
-    var end = core.length
-    var stream = tail()
-
-    if (!all) {
-      core.get(core.length, function () {
-        if (core.length - end > 25) {
-          stream.destroy()
-          log('(skipping to latest messages)')
-          tail()
-        }
-      })
-    }
-
-    function tail () {
-      var stream = core.createReadStream({live: true, start: all ? 0 : Math.max(core.blocks - 25, 1)})
-      .on('data', function (data) {
-        log(data.toString())
-      })
-
-      return stream
-    }
+    tail()
   })
 
   var sw = swarm(signalhub('hyperirc-' + core.discoveryKey.toString('hex'), [
@@ -94,12 +84,43 @@ core.on('ready', function () {
   console.log('Waiting for peers...')
 
   sw.on('peer', function (connection) {
-    console.log('(webrtc peer joined, %d total', ++cnt)
-    document.getElementById('count').innerText = '' + cnt
+    console.log('(webrtc peer joined, %d total)', ++peerCount)
+    document.getElementById('count').innerText = '' + peerCount
     var peer = core.replicate()
     pump(peer, connection, peer, function () {
-      console.log('(webrtc peer left, %d total', --cnt)
-      document.getElementById('count').innerText = '' + cnt
+      console.log('(webrtc peer left, %d total)', --peerCount)
+      document.getElementById('count').innerText = '' + peerCount
     })
   })
 })
+
+core.on('append', function () {
+  document.getElementById('total-length').innerText = core.length
+})
+
+function tail () {
+  var index = Math.max(core.length - MESSAGE_CAP, 1)
+  var stream = core.createReadStream({
+    live: true,
+    start: all ? 0 : index
+  })
+  .on('data', function (data) {
+    log(data.toString(), index++)
+  })
+
+  return stream
+}
+
+// https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript#16348977
+function stringToColor (str) {
+  var hash = 0
+  for (var i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  var color = '#'
+  for (var j = 0; j < 3; j++) {
+    var value = (hash >> (j * 8)) & 0xFF
+    color += ('00' + value.toString(16)).substr(-2)
+  }
+  return color
+}
