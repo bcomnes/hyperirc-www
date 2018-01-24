@@ -8,6 +8,7 @@
     "date-time": "^2.1.0",
     "hypercore": "^6.10.1",
     "level-browserify": "^1.1.0",
+    "linkify-urls": "^1.4.0",
     "pump": "^1.0.1",
     "random-access-idb": "^1.0.4",
     "random-access-memory": "^2.4.0",
